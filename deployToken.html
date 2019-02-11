@@ -1,29 +1,34 @@
 <!DOCTYPE html>
 <html>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <body>
+<div class="w3-container w3-teal">
+    <h2>Token Creator</h2>
+</div>
 
-<label>Create new token</label><br><br>
+<div class="w3-container">
+<p><label class="w3-text-teal"><b>Create new token</b></label></p>
 
-<label>Token owner: </label><br>
-<input type= text id="_owner" size=65><br>
+<p><label class="w3-text-teal">Token owner:</label><br>
+<input class="w3-input w3-border w3-light-grey" type= text id="_owner" size=65></p>
 
-<label>Token symbol: </label><br>
-<input type= text id="_symbol" size=65><br>
+<p><label class="w3-text-teal">Token symbol:</label><br>
+<input class="w3-input w3-border w3-light-grey" type= text id="_symbol" size=65></p>
 
-<label>Token name: </label><br>
-<input type= text id="_name" size=65><br>
+<p><label class="w3-text-teal">Token name:</label><br>
+<input class="w3-input w3-border w3-light-grey" type= text id="_name" size=65></p>
 
-<label>Decimals: </label><br>
-<input type= text id="_decimals" size=65><br>
+<p><label class="w3-text-teal">Decimals:</label><br>
+<input class="w3-input w3-border w3-light-grey" type= text id="_decimals" size=65></p>
 
-<label>Initial supply: </label><br>
-<input type= text id="_supply" size=65><br>
+<p><label class="w3-text-teal">Initial supply: </label><br>
+<input class="w3-input w3-border w3-light-grey" type= text id="_supply" size=65></p>
 
-<input type=submit onclick="createToken()"><br>
+<input class="w3-btn w3-blue-grey" type=submit value="Deploy token" onclick="createToken()"><br>
 
-<label id="result"></label>
-
+<p><label label class="w3-text-teal" id="result"><h2></h2></label><p>
+</div>
 <script>
 
 
