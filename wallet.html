@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<body>
+
+<label>Wallet</label><br><br>
+
+<label>Import JSON key file</label><br>
+<input type= file id="keystorage"><br>
+<input type=password id="keystoragePassword"><br>
+<input type=submit onclick="loadKey()"><br><br>
+
+
+<label>Token address: </label><br>
+<input type= text id="_tokenAddress" size=65><br>
+<label>Account balance:</label><br>
+<label id="balance"></label><br>
+<input type=submit onclick="httpGetAccauntBalance()"><br><br>
+
+
+<label> Or enter privte key manually </label><br>
+<label>Private key: </label><br>
+<input type= text id="_privateKey" size=65><br><br>
+<label>Transfer _from: </label><br>
+<input type= text id="_from" size=65><br><br>
+<label>Transfer _to: </label><br>
+<input type= text id="_to" size=65><br><br>
+<label>Amount: </label><br>
+<input type= text id="_amount" size=65><br><br>
+
+<input type=submit onclick="preSignedTransaction()"><br>
+
+<script type="text/javascript" src="ethereumjs-all-2018-1-17.min.js"></script>
+<script>
+
+//Parse address and private key from JSON file
+function loadKey() {
+
+    var file = document.getElementById("keystorage").files[0];
+    if (file) {
+        var reader = new FileReader();
+        reader.readAsText(file, "UTF-8");
+        reader.onload = function (evt) {
+            var wallet = ethereumjs.Wallet.fromV3(evt.target.result, document.getElementById("keystoragePassword").value);
+            document.getElementById("_from").value = wallet.getAddressString();
+            document.getElementById("_privateKey").value = wallet.getPrivateKeyString();
+        }
+        reader.onerror = function (evt) {
+            document.getElementById("fileContents").innerHTML = "error reading file";
+        }
+    }
+}
+
+//HTTP balance get request
+function httpGetAccauntBalance()
+{
+    //TODO: check values
+    var _token = document.getElementById("_tokenAddress").value;
+    var _wallet = document.getElementById("_from").value;
+    
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            document.getElementById("balance").innerHTML = xmlHttp.responseText;
+    }
+    var request = "http://localhost:3000/balance?token=" + _token + "&wallet=" + _wallet;
+    xmlHttp.open("GET", request, true); // true for asynchronous 
+    xmlHttp.send(null);
+}
+
+//HTTP post presigned transaction
+function postPreSignedTransaction(_token, _from, _to, _value, _signature)
+{
+    var xmlHttp = new XMLHttpRequest();
+    var request = "http://localhost:3000/preSignedTransaction?token=" + _token +
+                                               "&from=" + _from +
+                                               "&to=" + _to +
+                                               "&value=" + _value +
+                                               "&signature=" + _signature;
+
+    xmlHttp.open("POST", request, true); // true for asynchronous 
+    xmlHttp.send(null);
+}
+
+//Prepare and send pre signed transactio with http post
+function preSignedTransaction()
+{
+    //TODO: check values
+    var _from = document.getElementById("_from").value;
+    var _to = document.getElementById("_to").value;
+    var _amount = document.getElementById("_amount").value;
+    var _privateKey = ethereumjs.Util.stripHexPrefix(document.getElementById("_privateKey").value);
+
+    const formattedAddress = address => ethereumjs.Buffer.Buffer(ethereumjs.Util.stripHexPrefix(address), 'hex');
+    const formattedInt = int => ethereumjs.Util.setLengthLeft(int, 32);
+    const formattedBytes32 = bytes => ethereumjs.Util.addHexPrefix(bytes.toString('hex'));
+    const hashedTightPacked = args => ethereumjs.Util.sha3(ethereumjs.Buffer.Buffer.concat(args));
+    const fixSignature = (signature) => {
+    // in geth its always 27/28, in ganache its 0/1. Change to 27/28 to prevent
+    // signature malleability
+    // https://github.com/ethereum/go-ethereum/blob/master/internal/ethapi/api.go#L447
+        const v = parseInt(signature.slice(130, 132), 16) + 27;
+        const vHex = v.toString(16);
+        return signature.slice(0, 130) + vHex;
+    };
+
+    components = [
+        formattedAddress(_from),
+        formattedAddress(_to),
+        formattedInt(parseInt(_amount))
+    ];
+
+    console.log(components);
+    console.log(ethereumjs.Buffer.Buffer.concat(components).toString('hex'));
+
+    const hash = hashedTightPacked(components);
+    console.log(hash.toString('hex'))
+
+    const vrs = ethereumjs.Util.ecsign(hashedTightPacked(components), ethereumjs.Buffer.Buffer(_privateKey, 'hex'));
+    console.log(vrs)
+
+    const sig = ethereumjs.Util.toRpcSig(vrs.v, vrs.r, vrs.s);
+    console.log(sig.toString('hex'));
+
+    const fixedSignature = fixSignature(sig);
+    console.log(fixedSignature.toString('hex'));
+
+    postPreSignedTransaction("0x0000", _from, _to, _amount, fixedSignature);
+}
+
+</script>
+
+</body>
+</html>
