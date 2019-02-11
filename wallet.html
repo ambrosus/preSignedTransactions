@@ -90,6 +90,7 @@ function preSignedTransaction()
     var _to = document.getElementById("_to").value;
     var _amount = document.getElementById("_amount").value;
     var _privateKey = ethereumjs.Util.stripHexPrefix(document.getElementById("_privateKey").value);
+    var _token = document.getElementById("_tokenAddress").value;
 
     const formattedAddress = address => ethereumjs.Buffer.Buffer(ethereumjs.Util.stripHexPrefix(address), 'hex');
     const formattedInt = int => ethereumjs.Util.setLengthLeft(int, 32);
@@ -125,7 +126,7 @@ function preSignedTransaction()
     const fixedSignature = fixSignature(sig);
     console.log(fixedSignature.toString('hex'));
 
-    postPreSignedTransaction("0x0000", _from, _to, _amount, fixedSignature);
+    postPreSignedTransaction(_token, _from, _to, _amount, fixedSignature);
 }
 
 </script>

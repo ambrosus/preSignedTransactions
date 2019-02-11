@@ -2,6 +2,8 @@ const express = require('express')
 const app = express()
 const port = 3000
 
+const ethHelper = require('./helpers.js')
+
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -20,7 +22,7 @@ app.get('/balance', function (req, res) {
 	console.log("Get balance request");
 	console.log(token);
 	console.log(address);
-	//TODO: get balance form token contract
+	
 	res.send('0x0000000');
 });
 
@@ -38,7 +40,7 @@ app.post('/preSignedTransaction', function (req, res) {
 	console.log(_value);
 	console.log(_signature);
 
-	//TODO:send transaction status
+	ethHelper.performPreSignedTransaction(_token, _from, _to, _value, _signature, (_value) => { res.send_(value); });
 	res.send('aaaaaaa');
 });
 
@@ -46,7 +48,7 @@ app.post('/createNewToken', function (req, res) {
 	var _owner = req.query.owner;
 	var _symbol = req.query.symbol;
 	var _name = req.query.name;
-	var _decimals = req.query.name;
+	var _decimals = req.query.decimals;
 	var _initialSupply = req.query.initialSupply;
 
 	console.log(_owner);
@@ -54,6 +56,8 @@ app.post('/createNewToken', function (req, res) {
 	console.log(_name);
 	console.log(_decimals);
 	console.log(_initialSupply);
+        
+        ethHelper.deployTokenSmartcontract(_owner, _symbol, _name, _decimals, _initialSupply, (_value) => { res.send_(value); });
 });
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
