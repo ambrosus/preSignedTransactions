@@ -1,39 +1,49 @@
 <!DOCTYPE html>
 <html>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <body>
 
-<label>Wallet</label><br><br>
+<div class="w3-container w3-teal">
+    <h2>Wallet</h2>
+</div>
 
-<label>Import JSON key file</label><br>
-<input type= file id="keystorage"><br>
-<input type=password id="keystoragePassword"><br>
-<input type=submit onclick="loadKey()"><br><br>
+<div class="w3-cell-row">
+
+<div class="w3-container w3-cell">
+    <p><label class="w3-text-teal"><b>Token</b></label><br></p>
+    <p><label class="w3-text-teal">Token address: </label><br>
+    <input class="w3-input w3-border w3-light-grey" type= text id="_tokenAddress" size=65></p>
+    <p><input class="w3-btn w3-blue-grey" type=submit value="Update" onclick="httpGetAccauntBalance()">
+    <label class="w3-text-teal" style="margin:10px">Account balance:</label>
+    <label class="w3-text-teal" id="balance"></label></p>
+</div>
+
+<div class="w3-container w3-cell">
+    <p><label class="w3-text-teal"><b>Wallet info</b></label></p>
+    <p><label class="w3-text-teal">Wallet address: </label>
+    <input class="w3-input w3-border w3-light-grey" type=text id="_from" size=65></p>
+    </p><input class="w3-btn w3-blue-grey" onchange="loadKey()" type= file id="keystorage"></p>
+</div>
+
+</div>
 
 
-<label>Wallet address: </label><br>
-<input type= text id="_from" size=65><br>
-<label>Token address: </label><br>
-<input type= text id="_tokenAddress" size=65><br><br>
-<label>Account balance:</label>
-<label id="balance"></label><br>
-<input type=submit onclick="httpGetAccauntBalance()"><br><br>
-
-
-<label> Or enter privte key manually </label><br>
-<label>Private key: </label><br>
-<input type= text id="_privateKey" size=65><br><br>
-
-<label>Transfer _to: </label><br>
-<input type= text id="_to" size=65><br><br>
-<label>Amount: </label><br>
-<input type= text id="_amount" size=65><br><br>
-
-<input type=submit onclick="preSignedTransaction()"><br>
+<div class="w3-container w3-card-4">
+    <p><label class="w3-text-teal"><b>Send tokens</b></label><br></p>
+    <p><label class="w3-text-teal">Private key: </label><br>
+    <input class="w3-input w3-border w3-light-grey" type= text id="_privateKey" size=65></p>
+    
+    <p><label class="w3-text-teal">Receiver address: </label>
+    <input class="w3-input w3-border w3-light-grey" type= text id="_to" size=65></p>
+    <p><label class="w3-text-teal">Amount: </label><br>
+    <input class="w3-input w3-border w3-light-grey" type= text id="_amount" size=65></p>
+    
+    <p><input class="w3-btn w3-blue-grey" type=submit value="Send transaction" onclick="preSignedTransaction()"></p>
+</div>
 
 <script type="text/javascript" src="ethereumjs-all-2018-1-17.min.js"></script>
 <script>
-
 //Parse address and private key from JSON file
 function loadKey() {
 
@@ -42,7 +52,8 @@ function loadKey() {
         var reader = new FileReader();
         reader.readAsText(file, "UTF-8");
         reader.onload = function (evt) {
-            var wallet = ethereumjs.Wallet.fromV3(evt.target.result, document.getElementById("keystoragePassword").value);
+            var password = prompt("Enter key password");
+            var wallet = ethereumjs.Wallet.fromV3(evt.target.result, password);
             document.getElementById("_from").value = wallet.getAddressString();
             document.getElementById("_privateKey").value = wallet.getPrivateKeyString();
         }
