@@ -43,6 +43,11 @@ function createToken()
                                                "&decimals=" + _decimals +
                                                "&initialSupply=" + _initialSupply;
 
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            document.getElementById("result").innerHTML = xmlHttp.responseText;
+    }
+
     xmlHttp.open("POST", request, true); // true for asynchronous 
     xmlHttp.send(null);
 }

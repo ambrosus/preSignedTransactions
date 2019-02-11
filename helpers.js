@@ -26,24 +26,24 @@ module.exports = {
             from: web3.eth.defaultAccount,
             gas: 5000000,
         }).on('confirmation', (confirmationNumber, receipt) => {
-            _callback(confirmationNumber);
+            //_callback(confirmationNumber);
         })
         .on('error', () => {
-            _callback(0);
+            //_callback(0);
         });
     },
     getAccountNonce: function (_token, _from, _callback) {
         let Token = new web3.eth.Contract(contractAbi, _token);
         return Token.methods.getAccountNonce(_from).call({from: web3.eth.defaultAccount})
         .then((result) => {
-            _callback(result);
+            _callback(result.toString());
         });
     },
     getAccountBalance: function (_token, _from, _callback) {
         let Token = new web3.eth.Contract(contractAbi, _token);
         return Token.methods.balanceOf(_from).call({from: web3.eth.defaultAccount})
         .then((result) => {
-            _callback(result);
+            _callback(result.toString());
         });
     },
 

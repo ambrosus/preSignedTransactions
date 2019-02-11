@@ -11,9 +11,11 @@
 <input type=submit onclick="loadKey()"><br><br>
 
 
+<label>Wallet address: </label><br>
+<input type= text id="_from" size=65><br>
 <label>Token address: </label><br>
-<input type= text id="_tokenAddress" size=65><br>
-<label>Account balance:</label><br>
+<input type= text id="_tokenAddress" size=65><br><br>
+<label>Account balance:</label>
 <label id="balance"></label><br>
 <input type=submit onclick="httpGetAccauntBalance()"><br><br>
 
@@ -21,8 +23,7 @@
 <label> Or enter privte key manually </label><br>
 <label>Private key: </label><br>
 <input type= text id="_privateKey" size=65><br><br>
-<label>Transfer _from: </label><br>
-<input type= text id="_from" size=65><br><br>
+
 <label>Transfer _to: </label><br>
 <input type= text id="_to" size=65><br><br>
 <label>Amount: </label><br>
@@ -68,7 +69,7 @@ function httpGetAccauntBalance()
     xmlHttp.send(null);
 }
 
-function preSignedTransaction()git 
+function preSignedTransaction()
 {
     //TODO: check values
     var _from = document.getElementById("_from").value;
@@ -79,9 +80,10 @@ function preSignedTransaction()git
     
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {   
             var nonce = xmlHttp.responseText;
-            signAndPostPreSignedTransaction(_from, _to, _amount, _privateKey, _token, nonce)
+            signAndPostPreSignedTransaction(_from, _to, _amount, _privateKey, _token, nonce);
+        }
     }
     var request = "http://localhost:3000/nonce?token=" + _token + "&wallet=" + _from;
     xmlHttp.open("GET", request, true); // true for asynchronous 
