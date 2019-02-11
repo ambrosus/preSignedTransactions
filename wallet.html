@@ -68,7 +68,7 @@ function httpGetAccauntBalance()
     xmlHttp.send(null);
 }
 
-function preSignedTransaction()
+function preSignedTransaction()git 
 {
     //TODO: check values
     var _from = document.getElementById("_from").value;
@@ -83,7 +83,7 @@ function preSignedTransaction()
             var nonce = xmlHttp.responseText;
             signAndPostPreSignedTransaction(_from, _to, _amount, _privateKey, _token, nonce)
     }
-    var request = "http://localhost:3000/balance?token=" + _token + "&wallet=" + _from;
+    var request = "http://localhost:3000/nonce?token=" + _token + "&wallet=" + _from;
     xmlHttp.open("GET", request, true); // true for asynchronous 
     xmlHttp.send(null);
 }

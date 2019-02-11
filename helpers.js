@@ -19,10 +19,10 @@ module.exports = {
             gas: 5000000,
         }).then((instance) => { _callback(instance.options.address);});
     },
-    performPreSignedTransaction: function (_token, _from, _to, _value, _noonce, _signature, _callback) {
-
+    performPreSignedTransaction: function (_token, _from, _to, _value, _nonce, _signature, _callback) {
+        console.log(_token, _from, _to, _value, _nonce, _signature)
         let Token = new web3.eth.Contract(contractAbi, _token);
-        Token.transferPreSigned(_signature, _from, _to, _value, _nonce).send({
+        Token.methods.transferPreSigned(_signature, _from, _to, _value, _nonce).send({
             from: web3.eth.defaultAccount,
             gas: 5000000,
         }).on('confirmation', (confirmationNumber, receipt) => {

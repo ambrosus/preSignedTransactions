@@ -19,12 +19,8 @@ app.get('/balance', function (req, res) {
   	res.header('Expires', '-1');
   	res.header('Pragma', 'no-cache');
 	
-	console.log("Get balance request");
-	console.log(token);
-	console.log(address);
-	
 
-	res.send('0x0000000');
+	ethHelper.getAccountBalance(token, address, (_value) => { res.send(_value); });
 });
 
 app.get('/nonce', function (req, res) {
@@ -39,7 +35,7 @@ app.get('/nonce', function (req, res) {
 	console.log(token);
 	console.log(address);
 	
-	ethHelper.getAccountNonce(token, address, (_value) => { res.send_(value); });
+	ethHelper.getAccountNonce(token, address, (_value) => { res.send(_value); });
 });
 
 app.post('/preSignedTransaction', function (req, res) {
@@ -48,6 +44,7 @@ app.post('/preSignedTransaction', function (req, res) {
 	var _to = req.query.to;
 	var _value = req.query.value;
 	var _signature = req.query.signature;
+	var _nonce = req.query.nonce;
 
 	console.log("Post preSignedTransaction request");
 	console.log(_token);
@@ -55,8 +52,9 @@ app.post('/preSignedTransaction', function (req, res) {
 	console.log(_to);
 	console.log(_value);
 	console.log(_signature);
+	console.log(_nonce);
 
-	ethHelper.performPreSignedTransaction(_token, _from, _to, _value, _nonce, _signature, (_value) => { res.send_(value); });
+	ethHelper.performPreSignedTransaction(_token, _from, _to, _value, _nonce, _signature, (_value) => { res.send(_value); });
 });
 
 app.post('/createNewToken', function (req, res) {
@@ -65,7 +63,6 @@ app.post('/createNewToken', function (req, res) {
 	var _name = req.query.name;
 	var _decimals = req.query.decimals;
 	var _initialSupply = req.query.initialSupply;
-         var _nonce = req.query.nonce;
 
 	console.log(_owner);
 	console.log(_symbol);
@@ -73,7 +70,7 @@ app.post('/createNewToken', function (req, res) {
 	console.log(_decimals);
 	console.log(_initialSupply);
         
-         ethHelper.deployTokenSmartcontract(_owner, _symbol, _name, _decimals, _initialSupply, (_value) => { res.send_(_value); });
+    ethHelper.deployTokenSmartcontract(_owner, _symbol, _name, _decimals, _initialSupply, (_value) => { res.send(_value); });
 });
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
