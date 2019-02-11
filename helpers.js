@@ -1,5 +1,5 @@
 const Web3 = require('web3');
-const web3 = new Web3(Web3.providers.HttpProvider());
+const web3 = new Web3(Web3.providers.HttpProvider("http://localhost:8545"));
 const fs = require('fs');
 
 web3.eth.defaultAccount = '0x4dac8e1c2FdA85A206b63334F3A508d25159320E';
@@ -19,10 +19,10 @@ module.exports = {
             gas: 5000000,
         }).then((instance) => { _callback(instance.options.address);});
     },
-    performPreSignedTransaction: function (_token, _from, _to, _value, _signature, _callback) {
+    performPreSignedTransaction: function (_token, _from, _to, _value, _noonce, _signature, _callback) {
 
         let Token = new web3.eth.Contract(contractAbi, _token);
-        Token.transferPreSigned(_signature, _from, _to, _value).send({
+        Token.transferPreSigned(_signature, _from, _to, _value, _nonce).send({
             from: web3.eth.defaultAccount,
             gas: 5000000,
         }).on('confirmation', (confirmationNumber, receipt) => {
@@ -31,6 +31,20 @@ module.exports = {
         .on('error', () => {
             _callback(0);
         });
-    }
+    },
+    getAccountNonce: function (_token, _from, _callback) {
+        let Token = new web3.eth.Contract(contractAbi, _token);
+        return Token.methods.getAccountNonce(_from).call({from: web3.eth.defaultAccount})
+        .then((result) => {
+            _callback(result);
+        });
+    },
+    getAccountBalance: function (_token, _from, _callback) {
+        let Token = new web3.eth.Contract(contractAbi, _token);
+        return Token.methods.balanceOf(_from).call({from: web3.eth.defaultAccount})
+        .then((result) => {
+            _callback(result);
+        });
+    },
 
 };

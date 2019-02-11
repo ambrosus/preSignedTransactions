@@ -68,21 +68,6 @@ function httpGetAccauntBalance()
     xmlHttp.send(null);
 }
 
-//HTTP post presigned transaction
-function postPreSignedTransaction(_token, _from, _to, _value, _signature)
-{
-    var xmlHttp = new XMLHttpRequest();
-    var request = "http://localhost:3000/preSignedTransaction?token=" + _token +
-                                               "&from=" + _from +
-                                               "&to=" + _to +
-                                               "&value=" + _value +
-                                               "&signature=" + _signature;
-
-    xmlHttp.open("POST", request, true); // true for asynchronous 
-    xmlHttp.send(null);
-}
-
-//Prepare and send pre signed transactio with http post
 function preSignedTransaction()
 {
     //TODO: check values
@@ -91,7 +76,36 @@ function preSignedTransaction()
     var _amount = document.getElementById("_amount").value;
     var _privateKey = ethereumjs.Util.stripHexPrefix(document.getElementById("_privateKey").value);
     var _token = document.getElementById("_tokenAddress").value;
+    
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            var nonce = xmlHttp.responseText;
+            signAndPostPreSignedTransaction(_from, _to, _amount, _privateKey, _token, nonce)
+    }
+    var request = "http://localhost:3000/balance?token=" + _token + "&wallet=" + _from;
+    xmlHttp.open("GET", request, true); // true for asynchronous 
+    xmlHttp.send(null);
+}
 
+//HTTP post presigned transaction
+function postPreSignedTransaction(_token, _from, _to, _value, _nonce, _signature)
+{
+    var xmlHttp = new XMLHttpRequest();
+    var request = "http://localhost:3000/preSignedTransaction?token=" + _token +
+                                               "&from=" + _from +
+                                               "&to=" + _to +
+                                               "&value=" + _value +
+                                               "&nonce=" + _nonce +
+                                               "&signature=" + _signature;
+
+    xmlHttp.open("POST", request, true); // true for asynchronous 
+    xmlHttp.send(null);
+}
+
+//Prepare and send pre signed transactio with http post
+function signAndPostPreSignedTransaction(_from, _to, _amount, _privateKey, _token, _nonce)
+{
     const formattedAddress = address => ethereumjs.Buffer.Buffer(ethereumjs.Util.stripHexPrefix(address), 'hex');
     const formattedInt = int => ethereumjs.Util.setLengthLeft(int, 32);
     const formattedBytes32 = bytes => ethereumjs.Util.addHexPrefix(bytes.toString('hex'));
@@ -108,7 +122,8 @@ function preSignedTransaction()
     components = [
         formattedAddress(_from),
         formattedAddress(_to),
-        formattedInt(parseInt(_amount))
+        formattedInt(parseInt(_amount)),
+        formattedInt(parseInt(_nonce))
     ];
 
     console.log(components);
@@ -126,7 +141,7 @@ function preSignedTransaction()
     const fixedSignature = fixSignature(sig);
     console.log(fixedSignature.toString('hex'));
 
-    postPreSignedTransaction(_token, _from, _to, _amount, fixedSignature);
+    postPreSignedTransaction(_token, _from, _to, _amount, _nonce, fixedSignature);
 }
 
 </script>
