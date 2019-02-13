@@ -2,7 +2,7 @@ const Web3 = require('web3');
 const web3 = new Web3(Web3.providers.HttpProvider("http://localhost:8545"));
 const fs = require('fs');
 
-web3.eth.defaultAccount = '0x4dac8e1c2FdA85A206b63334F3A508d25159320E';
+web3.eth.defaultAccount = '0xB365B4236Ae69ef4b7b1EB622ecC2bD88083Cfb0';
 
 const contractBin = Buffer.from(fs.readFileSync("./out/ERC865Token.bin"));
 const contractAbi = JSON.parse(fs.readFileSync("./out/ERC865Token.abi"));
