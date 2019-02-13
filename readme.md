@@ -22,14 +22,19 @@ To build the smart contract, first install dependencies:
 Then compile the smart contract using `solc`.
 
 In case if solc was installed not by npm you should specify prefix for imported files.
+
 ```solc <params> openzeppelin-solidity=node_modules/openzeppelin-solidity/contracts```
 
 # How to run PoC
 First you need to install http server dependencies.
 For http server used [express](https://expressjs.com/) framework.
+
 ```npm install express --save```
+
 For interaction with ethereum node used [web3](https://github.com/ethereum/web3.js/).
+
 ```npm install web3```
+
 > In some cases you should init node project before instlling dependencies. You can do this with ```npm init```.
 
 Before starting script you should change hardcoded web3 provider and default account in [http_server/helpers.js](http_server/helpers.js). All on-chain operations will be performed from that account, so this account should be unlocked and should be able to pay transactions fees.
@@ -37,7 +42,9 @@ Also, contracts deployed by this server will be owned by default account. This i
 Another hardcoded parameters are pathes to files with contract abi and bytecode. But for running this PoC you don't need to change anything.
 
 After installing dependencies and changing hardcoded parameters http server can be started with:
+
 ```cd http_server & node http_server.js```
+
 > In current implementation most errors not handled, so be carefull
 
 Now pages from [web]() directory can be used.
