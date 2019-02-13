@@ -20,7 +20,6 @@ contract ERC865Token is ERC20, ERC20Detailed, Ownable {
         public
         Ownable()
         ERC20Detailed(_name, _symbol, _decimals) {
-            _transferOwnership(_owner);
             _mint(_owner, _initialSupply);
         }
     
