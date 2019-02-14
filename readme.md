@@ -5,16 +5,23 @@
   - http_server/out - compiled abi and bytecode of used contracts
  
 # How it works
-All on-chain actions are performed by remote http server. Web pages can only send or get some parameters with GET/POST http requests or generate signature based on specified private key.
+All on-chain actions are performed by the remote HTTP server. Web pages can only send or get some parameters with GET/POST HTTP requests or generate signatures based on specified private key.
 
 ![wallet_sequence_diagram.png](docs/wallet_sequence_diagram.png)
 
-Main idea is sending transaction parameters and signature to remote server, wich will perform on-chain transaction.
-First, web client will receive nonce parameter for specified address from http server, which will get nonce from token contract by calling getAccountNonce().
-After nonce received by wallet, it will calculate signature based on wallet address, receiver address, tokens mount and nonce. Then transaction parameters with calculated signature and token address will be sent to http server. And http server based on received info will try to perform transaction. All work is done in transferPreSigned() function, sender address will be recovered form signature and passed parameters. And if everything is fine then tokens will be transfered from wallet address to receiver.
-As all on-chain action will be performed on server, all transactions fees will be payed only by server.
+The main idea is sending transaction parameters and signature to remote server, which will perform on-chain transaction.First, web client will receive a nonce parameter for specified address from an http server, which will get nonce from the token contract by calling getAccountNonce ().
 
-## Building
+After nonce received by wallet, it will calculate signature based on wallet address, receiver address, tokens mount and nonce.
+
+> Nonce is amount of transactions for account. In our case it's amount of specified token transaction. It stored in token contract and increased by 1 after any successfull transaction. We need it to protect account against multiple sending of same signed transaction.
+
+Then transaction parameters with calculated signature and token address will be sent to the http server. And http server will try to perform the transaction. All work is done in transferPreSigned () function, sender address will be recovered from the signature and passed parameters. And if everything is fine then tokens will be transferred from wallet address to the receiver.
+As all on-chain action will be performed on the server, all transaction fees will be paid only by the server.
+
+# Where it can be used
+For example, Starbucks release own token. These tokens can be spent to purchase coffee. For this Starbucks created token smart contract and wallet for clients. Bob received 10 tokens from Starbucks, and he wants to send 5 token to Alice. For this Bob can use Starbucks wallet, which will prepare transaction parameters and send them to Starbucks. Signing and sending performed off-chain, so there is no fee for that. When Starbucks received signed parameters and crates on-chain transaction from itself. Now transaction performed on-chain and Starbucks pays transaction fee for Bob. Smartcontract can verify parameters with Bob signature, and after check it will send 5 tokens from Bob to Alice.
+
+# Building
 To build the smart contract, first install dependencies:
 
 ``` npm install openzeppelin-solidity ```
@@ -37,9 +44,9 @@ For interaction with ethereum node used [web3](https://github.com/ethereum/web3.
 
 > In some cases you should init node project before instlling dependencies. You can do this with ```npm init```.
 
-Before starting script you should change hardcoded web3 provider and default account in [http_server/helpers.js](http_server/helpers.js). All on-chain operations will be performed from that account, so this account should be unlocked and should be able to pay transactions fees.
+Before starting script you should change hardcoded web3 provider and default account in [http_server/helpers.js](http_server/helpers.js). All on-chain operations will be performed from that account, so this account should be unlocked and should be able to pay transaction fees.
 Also, contracts deployed by this server will be owned by default account. This is important because only owner allowed to perform preSignedTransactions.
-Another hardcoded parameters are pathes to files with contract abi and bytecode. But for running this PoC you don't need to change anything.
+Other hardcoded parameters are paths to files with contract abi and byte code. But for running this PoC you don't need to change anything.
 
 After installing dependencies and changing hardcoded parameters http server can be started with:
 
@@ -48,8 +55,8 @@ After installing dependencies and changing hardcoded parameters http server can 
 > In current implementation most errors not handled, so be carefull
 
 Now pages from [web]() directory can be used.
-First you should deploy new token contract. Open [deployToken.html](web/deployToken.html), enter needed parameters and create new contracts. After some time address of new token will appear under submit button. This address should be used in wallets for specifing tokens.
+First, you should deploy new token contract. Open [deployToken.html](web/deployToken.html), enter needed parameters and create new contracts. After some time address of the new token will appear under the submit button. This address should be used in wallets for chosing tokens to work with.
 
-To send tokens [wallet.html](web/wallet.html) can be used. You sould specify token address and wallet addres. With this info you can check wallet balance.
+To send tokens [wallet.html](web/wallet.html) can be used. You should specify token address and wallet address. With this info you can check wallet balance.
 To send transaction you need private key. You can specify it manually or open JSON key file (I tested key files generated by parity).
-After, you should set receiver address, token amount and press "Submit". After you can update current wallet balance or check receiver addres.
+After, you should set receiver address, token amount and press "Submit". After you can update current wallet balance or check receiver balance.
