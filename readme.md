@@ -1,9 +1,9 @@
-# Repository structure
-  - contracts - smart contract source code
-  - web - html pages for wallet and token creator
-  - http_server - js server files
-  - http_server/out - compiled abi and bytecode of used contracts
- 
+# Where it can be used
+![business_logic.png](docs/business_logic.png)
+
+For example, Starbucks release own token. These tokens can be spent to purchase coffee. For this Starbucks created token smart contract and wallet for clients. Bob received 10 tokens from Starbucks, and he wants to send 5 token to Alice. For this Bob can use Starbucks wallet, which will prepare transaction parameters and send them to Starbucks. Signing and sending performed off-chain, so there is no fee for that. When Starbucks received signed parameters and crates on-chain transaction from itself. Now transaction performed on-chain and Starbucks pays transaction fee for Bob. Smartcontract can verify parameters with Bob signature, and after check it will send 5 tokens from Bob to Alice.
+
+
 # How it works
 All on-chain actions are performed by the remote HTTP server. Web pages can only send or get some parameters with GET/POST HTTP requests or generate signatures based on specified private key.
 
@@ -18,8 +18,11 @@ After nonce received by wallet, it will calculate signature based on wallet addr
 Then transaction parameters with calculated signature and token address will be sent to the http server. And http server will try to perform the transaction. All work is done in transferPreSigned () function, sender address will be recovered from the signature and passed parameters. And if everything is fine then tokens will be transferred from wallet address to the receiver.
 As all on-chain action will be performed on the server, all transaction fees will be paid only by the server.
 
-# Where it can be used
-For example, Starbucks release own token. These tokens can be spent to purchase coffee. For this Starbucks created token smart contract and wallet for clients. Bob received 10 tokens from Starbucks, and he wants to send 5 token to Alice. For this Bob can use Starbucks wallet, which will prepare transaction parameters and send them to Starbucks. Signing and sending performed off-chain, so there is no fee for that. When Starbucks received signed parameters and crates on-chain transaction from itself. Now transaction performed on-chain and Starbucks pays transaction fee for Bob. Smartcontract can verify parameters with Bob signature, and after check it will send 5 tokens from Bob to Alice.
+# Repository structure
+  - contracts - smart contract source code
+  - web - html pages for wallet and token creator
+  - http_server - js server files
+  - http_server/out - compiled abi and bytecode of used contracts
 
 # Building
 To build the smart contract, first install dependencies:
