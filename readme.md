@@ -18,6 +18,20 @@ After nonce received by wallet, it will calculate signature based on wallet addr
 Then transaction parameters with calculated signature and token address will be sent to the http server. And http server will try to perform the transaction. All work is done in transferPreSigned () function, sender address will be recovered from the signature and passed parameters. And if everything is fine then tokens will be transferred from wallet address to the receiver.
 As all on-chain action will be performed on the server, all transaction fees will be paid only by the server.
 
+# Solution scalability
+In theory, most loaded part is web server with ehereum node. Current solution looks like this:
+![docs/current_structure.png](docs/current_structure.png)
+
+In case with big amount of simultanious connections we can separate ethereum node and webserver, and add more servers for hanling requests. We can achive this with round robin DNS.
+![docs/multiple_servers.png](docs/multiple_servers.png)
+
+In case with high transactions frequency we can add more nodes. We should add using of multiple providers to server part.
+![docs/multiple_nodes.png](docs/multiple_nodes.png)
+
+Or we can use both methods or even add more web servers or nodes dynamically.
+![docs/multiple_servers_and_nodes.png](docs/multiple_servers_and_nodes.png)
+
+
 # Repository structure
   - contracts - smart contract source code
   - web - html pages for wallet and token creator
