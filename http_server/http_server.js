@@ -12,15 +12,26 @@ app.use(function(req, res, next) {
 
 
 app.get('/balance', function (req, res) {
-	var token = req.query.token;
-	var address = req.query.wallet;
+    var contract = req.query.contract
+	var tokenId = req.query.tokenId;
+	var owner = req.query.owner;
 	//turn off get request caching
 	res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
   	res.header('Expires', '-1');
   	res.header('Pragma', 'no-cache');
 	
 
-	ethHelper.getAccountBalance(token, address, (_value) => { res.send(_value); });
+	ethHelper.getAccountBalance(contract, tokenId, owner, (_value) => { res.send(_value);});
+});
+
+app.get('/tokenTypes', function (req, res) {
+	//turn off get request caching
+	res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+  	res.header('Expires', '-1');
+  	res.header('Pragma', 'no-cache');
+
+
+	ethHelper.getTokensAmount((_value) => { res.send(_value);});
 });
 
 app.get('/nonce', function (req, res) {
@@ -61,16 +72,18 @@ app.post('/createNewToken', function (req, res) {
 	var _owner = req.query.owner;
 	var _symbol = req.query.symbol;
 	var _name = req.query.name;
-	var _decimals = req.query.decimals;
 	var _initialSupply = req.query.initialSupply;
+	var _contract = req.query.contract;
+	var _price = req.query.price;
 
-	console.log(_owner);
-	console.log(_symbol);
-	console.log(_name);
-	console.log(_decimals);
-	console.log(_initialSupply);
-        
-    ethHelper.deployTokenSmartcontract(_owner, _symbol, _name, _decimals, _initialSupply, (_value) => { res.send(_value); });
+    if (_contract)
+    {
+        ethHelper.addTokenToContract(_contract, _owner, _symbol, _name, _price, _initialSupply, (_value) => { res.send(_value); });
+    }
+    else
+    {
+        ethHelper.deployTokenSmartcontract(_owner, _symbol, _name, _initialSupply, (_value) => { res.send(_value); });
+    }
 });
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))

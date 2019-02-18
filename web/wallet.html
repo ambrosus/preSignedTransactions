@@ -67,15 +67,18 @@ function loadKey() {
 function httpGetAccauntBalance()
 {
     //TODO: check values
-    var _token = document.getElementById("_tokenAddress").value;
-    var _wallet = document.getElementById("_from").value;
+    var _contract = document.getElementById("_tokenAddress").value;
+    var _owner = document.getElementById("_from").value;
+    var _tokenId = 1;
     
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
             document.getElementById("balance").innerHTML = xmlHttp.responseText;
+
+         }
     }
-    var request = "http://localhost:3000/balance?token=" + _token + "&wallet=" + _wallet;
+    var request = "http://localhost:3000/balance?contract=" + _contract + "&owner=" + _owner + "&tokenId=" + _tokenId;
     xmlHttp.open("GET", request, true); // true for asynchronous 
     xmlHttp.send(null);
 }

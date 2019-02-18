@@ -8,26 +8,41 @@
 </div>
 
 <div class="w3-container">
-<p><label class="w3-text-teal"><b>Create new token</b></label></p>
+    <p>
+        <label class="w3-text-teal"><b>Create new token</b></label>
+    </p>
 
-<p><label class="w3-text-teal">Token owner:</label><br>
-<input class="w3-input w3-border w3-light-grey" type= text id="_owner" size=65></p>
+    <p>
+        <label class="w3-text-teal">Token owner:</label><br>
+        <input class="w3-input w3-border w3-light-grey" type= text id="_owner" size=65></p>
 
-<p><label class="w3-text-teal">Token symbol:</label><br>
-<input class="w3-input w3-border w3-light-grey" type= text id="_symbol" size=65></p>
+    <p>
+        <label class="w3-text-teal">Token symbol:</label><br>
+        <input class="w3-input w3-border w3-light-grey" type= text id="_symbol" size=65>
+    </p>
 
-<p><label class="w3-text-teal">Token name:</label><br>
-<input class="w3-input w3-border w3-light-grey" type= text id="_name" size=65></p>
+    <p>
+        <label class="w3-text-teal">Token name:</label><br>
+        <input class="w3-input w3-border w3-light-grey" type= text id="_name" size=65>
+    </p>
 
-<p><label class="w3-text-teal">Decimals:</label><br>
-<input class="w3-input w3-border w3-light-grey" type= text id="_decimals" size=65></p>
+    <p>
+        <label class="w3-text-teal">Initial supply: </label><br>
+        <input class="w3-input w3-border w3-light-grey" type= text id="_supply" size=65>
+    </p>
 
-<p><label class="w3-text-teal">Initial supply: </label><br>
-<input class="w3-input w3-border w3-light-grey" type= text id="_supply" size=65></p>
+    <label class="w3-text-grey">For creating new contract leave next fields empty.</label><br>
+    <p>
+        <label class="w3-text-teal">Contract address:</label><br>
+        <input class="w3-input w3-border w3-light-grey" type= text id="_contractAddress" size=65>
+    </p>
 
-<input class="w3-btn w3-blue-grey" type=submit value="Deploy token" onclick="createToken()"><br>
+    <p>
+        <label class="w3-text-teal">Token price in default tokens: </label><br>
+        <input class="w3-input w3-border w3-light-grey" type= text id="_price" size=65>
+    </p>
 
-<p><label label class="w3-text-teal" id="result"><h2></h2></label><p>
+    <input class="w3-btn w3-blue-grey" type=submit value="Deploy token" onclick="createToken()"><br>
 </div>
 <script>
 
@@ -38,19 +53,21 @@ function createToken()
     var _owner = document.getElementById("_owner").value;
     var _symbol = document.getElementById("_symbol").value;
     var _name = document.getElementById("_name").value;
-    var _decimals = document.getElementById("_decimals").value;
     var _initialSupply = document.getElementById("_supply").value;
+    var _contractAddress = document.getElementById("_contractAddress").value;
+    var _tokenPrice = document.getElementById("_price").value;
 
     var xmlHttp = new XMLHttpRequest();
     var request = "http://localhost:3000/createNewToken?owner=" + _owner +
                                                "&symbol=" + _symbol +
                                                "&name=" + _name +
-                                               "&decimals=" + _decimals +
-                                               "&initialSupply=" + _initialSupply;
+                                               "&initialSupply=" + _initialSupply +
+                                               "&contract=" + _contractAddress +
+                                               "&price=" + _tokenPrice;
 
     xmlHttp.onreadystatechange = function() { 
         if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-            document.getElementById("result").innerHTML = xmlHttp.responseText;
+            document.getElementById("_contractAddress").value = xmlHttp.responseText;
     }
 
     xmlHttp.open("POST", request, true); // true for asynchronous 
