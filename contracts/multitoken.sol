@@ -25,6 +25,7 @@ contract multitoken is Ownable {
         mapping(address => mapping(address => uint256)) allowed;
     }
 
+    mapping (address => uint256) private _nonces;
     mapping(uint256 => TokenType) private _tokens;
     uint256 private _tokenTypesAmount = 0;
     uint256 constant _defaultTokenId = 0;
@@ -244,8 +245,8 @@ contract multitoken is Ownable {
                     _burn(_holder, mismatch, _defaultTokenId);
                 }
                 else {
-                    tokensToSpend = _tokenToSpendId.add(1);
-                    _mint(_holder, _tokens[_tokenToSpendId].price - mismatch, _defaultTokenId);
+                    tokensToSpend = tokensToSpend.add(1);
+                    _mint(_holder, _tokens[_tokenToSpendId].price.sub(mismatch), _defaultTokenId);
                 }
             }
         }
@@ -284,4 +285,66 @@ contract multitoken is Ownable {
         return _tokens[_tokenId].balance[_owner];
     }
 
+
+    function transferPreSigned(bytes memory _signature, uint256 _tokenId, address _from, address _to, uint256 _value, uint256 _nonce)
+    public
+    onlyOwner {
+        require(_nonces[_from] == _nonce);
+        bytes32 message = keccak256(abi.encodePacked(_tokenId, _from, _to, _value, _nonce));
+        require(recoverSigner(message, _signature) == _from);
+
+        _nonces[_from] += 1;
+        _transfer(_from, _to, _value, _tokenId);
+    }
+
+    /**
+     * @return The current account nonce.
+     */
+    function getAccountNonce(address _account)
+    public
+    view
+    returns (uint256) {
+        return _nonces[_account];
+    }
+
+    /**
+     * @dev Internal function to parse signature parameters from a byte array.
+     */
+    function splitSignature(bytes memory _signature)
+    internal
+    pure
+    returns (uint8, bytes32, bytes32) {
+        require(_signature.length == 65);
+
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+
+        assembly {
+        // first 32 bytes, after the length prefix
+            r := mload(add(_signature, 32))
+        // second 32 bytes
+            s := mload(add(_signature, 64))
+        // final byte (first byte of the next 32 bytes)
+            v := byte(0, mload(add(_signature, 96)))
+        }
+
+        return (v, r, s);
+    }
+
+    /**
+     * @dev Internal function to recover signature address. Uses erecover to check the signature.
+     */
+    function recoverSigner(bytes32 message, bytes memory _signature)
+    internal
+    pure
+    returns (address) {
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
+
+        (v, r, s) = splitSignature(_signature);
+
+        return ecrecover(message, v, r, s);
+    }
 }

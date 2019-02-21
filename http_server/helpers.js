@@ -23,34 +23,27 @@ module.exports = {
             _callback(instance.options.address);
             });
     },
-    performPreSignedTransaction: function (_token, _from, _to, _value, _nonce, _signature, _callback) {
-        console.log(_token, _from, _to, _value, _nonce, _signature)
+    performPreSignedTransaction: function (_token, _tokenId, _from, _to, _value, _nonce, _signature, _callback) {
         let Token = new web3.eth.Contract(contractAbi, _token);
-        Token.methods.transferPreSigned(_signature, _from, _to, _value, _nonce)
+        Token.methods.transferPreSigned(_signature, _tokenId, _from, _to, _value, _nonce)
             .send({
                     from: web3.eth.defaultAccount,
                     gas: 5000000,
                   })
-            .on('confirmation', (confirmationNumber, receipt) => {
-                //_callback(confirmationNumber);
-                })
-            .on('error', () => {
-                //_callback(0);
-                });
+            .then((result) => {
+                _callback("");
+            });
     },
-    addTokenToContract(_contract, _tokenOwner, _symbol, _name, _price, _initialSupply, _callback) {
+    addTokenToContract: function(_contract, _tokenOwner, _symbol, _name, _price, _initialSupply, _callback) {
         let Token = new web3.eth.Contract(contractAbi, _contract);
         Token.methods.createNewToken(_name, _symbol, _price, _tokenOwner, _initialSupply)
             .send({
                     from: web3.eth.defaultAccount,
                     gas: 5000000,
                   })
-            .on('confirmation', (confirmationNumber, receipt) => {
-                //_callback(confirmationNumber);
-                })
-            .on('error', () => {
-                //_callback(0);
-                });
+            .then((result) => {
+                _callback("");
+            });
     },
     getAccountNonce: function (_token, _from, _callback) {
         let Token = new web3.eth.Contract(contractAbi, _token);
@@ -102,5 +95,17 @@ module.exports = {
             _callback(result.toString());
         });
      },
+     preSignedExchangeTokens: function(_contract, _owner, _tokenToSpendId, _tokenToBuyId, _amount, _cover, _nonce, _callback) {
+        console.log('exchange called');
+        let Token = new web3.eth.Contract(contractAbi, _contract);
+        Token.methods.exchangeTokens(_owner, _amount, _tokenToSpendId, _tokenToBuyId, _cover == 'true')
+            .send({
+                    from: web3.eth.defaultAccount,
+                    gas: 5000000,
+                  })
+            .then((result) => {
+                _callback(0);
+            });
+     }
 
 };

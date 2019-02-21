@@ -51,24 +51,18 @@ app.get('/nonce', function (req, res) {
 
 app.post('/preSignedTransaction', function (req, res) {
 	var _token = req.query.token;
+	var _tokenId = req.query.tokenId;
 	var _from = req.query.from;
 	var _to = req.query.to;
 	var _value = req.query.value;
 	var _signature = req.query.signature;
 	var _nonce = req.query.nonce;
 
-	console.log("Post preSignedTransaction request");
-	console.log(_token);
-	console.log(_from);
-	console.log(_to);
-	console.log(_value);
-	console.log(_signature);
-	console.log(_nonce);
-
-	ethHelper.performPreSignedTransaction(_token, _from, _to, _value, _nonce, _signature, (_value) => { res.send(_value); });
+	ethHelper.performPreSignedTransaction(_token, _tokenId, _from, _to, _value, _nonce, _signature, (_value) => { res.send(_value); });
 });
 
 app.post('/createNewToken', function (req, res) {
+    console.log('createNewToken');
 	var _owner = req.query.owner;
 	var _symbol = req.query.symbol;
 	var _name = req.query.name;
@@ -84,6 +78,19 @@ app.post('/createNewToken', function (req, res) {
     {
         ethHelper.deployTokenSmartcontract(_owner, _symbol, _name, _initialSupply, (_value) => { res.send(_value); });
     }
+});
+
+app.post('/tokenExchange', function (req, res) {
+    console.log('aaaaaaaaa');
+	var _contract = req.query.contract;
+    var _owner = req.query.owner;
+    var _tokenToSpendId = req.query.tokenToSpendId;
+    var _tokenToBuyId = req.query.tokenToBuyId;
+    var _amount = req.query.amount;
+    var _cover = req.query.cover;
+    var _nonce = 1;
+
+	ethHelper.preSignedExchangeTokens(_contract, _owner, _tokenToSpendId, _tokenToBuyId, _amount, _cover, _nonce, (_value) => { res.send(_value); });
 });
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
