@@ -10,36 +10,80 @@
 
 <div class="w3-cell-row">
 
-<div class="w3-container w3-cell">
-    <p><label class="w3-text-teal"><b>Token</b></label><br></p>
-    <p><label class="w3-text-teal">Token address: </label><br>
-    <input class="w3-input w3-border w3-light-grey" type= text id="_tokenAddress" size=65></p>
-    <p><input class="w3-btn w3-blue-grey" type=submit value="Update" onclick="httpGetAccauntBalance()">
-    <label class="w3-text-teal" style="margin:10px">Account balance:</label>
-    <label class="w3-text-teal" id="balance"></label></p>
+    <div class="w3-container w3-cell">
+        <div class="w3-container w3-card-4">
+            <p><label class="w3-text-teal"><b>Account balance</b></label><br></p>
+            <table class="w3-table-all" id="balanceTable">
+                <thead>
+                    <tr class="w3-light-grey">
+                        <th>Symbol</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+
+            <p><input class="w3-btn w3-blue-grey" type=submit value="Update" onclick="httpGetAccauntBalance()">
+            <label class="w3-text-teal" style="margin:10px">Account balance:</label>
+            <label class="w3-text-teal" id="balance"></label></p>
+        </div>
+
+        <div class="w3-container w3-card-4">
+            <p>
+                <label class="w3-text-teal"><b>Exchange tokens</b></label><br>
+            </p>
+            <p>
+                <label class="w3-text-teal">Amount: </label><br>
+                <input class="w3-input w3-border w3-light-grey" type=text id="tokensToExchange" size=65>
+            </p>
+        </div>
+    </div>
+
+    <div class="w3-container w3-cell">
+        <div class="w3-container w3-card-4">
+            <p>
+                <label class="w3-text-teal"><b>Wallet info</b></label>
+            </p>
+            <p>
+                <label class="w3-text-teal">Contract address: </label><br>
+                <input class="w3-input w3-border w3-light-grey" type= text id="_tokenAddress" size=65>
+            </p>
+            <p>
+                <label class="w3-text-teal">Wallet address: </label>
+                <input class="w3-input w3-border w3-light-grey" type=text id="_from" size=65>
+            </p>
+            <p>
+                <input class="w3-btn w3-blue-grey" onchange="loadKey()" type= file id="keystorage">
+            </p>
+        </div>
+
+        <div class="w3-container w3-card-4">
+        <p><label class="w3-text-teal"><b>Send tokens</b></label><br></p>
+            <p><label class="w3-text-teal">Private key: </label><br>
+                <input class="w3-input w3-border w3-light-grey" type= text id="_privateKey" size=65></p>
+
+            <p><label class="w3-text-teal">Receiver address: </label>
+                <input class="w3-input w3-border w3-light-grey" type= text id="_to" size=65></p>
+            <p><label class="w3-text-teal">Amount: </label><br>
+                <input class="w3-input w3-border w3-light-grey" type= text id="_amount" size=65></p>
+
+            <p><input class="w3-btn w3-blue-grey" type=submit value="Send transaction" onclick="preSignedTransaction()"></p>
+        </div>
+    </div>
 </div>
 
-<div class="w3-container w3-cell">
-    <p><label class="w3-text-teal"><b>Wallet info</b></label></p>
-    <p><label class="w3-text-teal">Wallet address: </label>
-    <input class="w3-input w3-border w3-light-grey" type=text id="_from" size=65></p>
-    </p><input class="w3-btn w3-blue-grey" onchange="loadKey()" type= file id="keystorage"></p>
-</div>
 
-</div>
+<div class="w3-cell-row">
+    <div class="w3-container w3-cell">
 
+    </div>
 
-<div class="w3-container w3-card-4">
-    <p><label class="w3-text-teal"><b>Send tokens</b></label><br></p>
-    <p><label class="w3-text-teal">Private key: </label><br>
-    <input class="w3-input w3-border w3-light-grey" type= text id="_privateKey" size=65></p>
-    
-    <p><label class="w3-text-teal">Receiver address: </label>
-    <input class="w3-input w3-border w3-light-grey" type= text id="_to" size=65></p>
-    <p><label class="w3-text-teal">Amount: </label><br>
-    <input class="w3-input w3-border w3-light-grey" type= text id="_amount" size=65></p>
-    
-    <p><input class="w3-btn w3-blue-grey" type=submit value="Send transaction" onclick="preSignedTransaction()"></p>
+    <div class="w3-container w3-cell">
+
+    </div>
 </div>
 
 <script type="text/javascript" src="ethereumjs-all-2018-1-17.min.js"></script>
@@ -56,6 +100,7 @@ function loadKey() {
             var wallet = ethereumjs.Wallet.fromV3(evt.target.result, password);
             document.getElementById("_from").value = wallet.getAddressString();
             document.getElementById("_privateKey").value = wallet.getPrivateKeyString();
+            httpGetAccauntBalance();
         }
         reader.onerror = function (evt) {
             document.getElementById("fileContents").innerHTML = "error reading file";
@@ -74,9 +119,20 @@ function httpGetAccauntBalance()
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() { 
         if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-            document.getElementById("balance").innerHTML = xmlHttp.responseText;
 
-         }
+            var tbody = document.getElementById('balanceTable').getElementsByTagName('tbody')[0];
+            tbody.innerHTML = "";
+
+            var tokens = JSON.parse(xmlHttp.responseText);
+
+            for (var i = 0; i < tokens.length; ++i) {
+                var newRow = tbody.insertRow(tbody.rows.length);
+                newRow.insertCell(0).appendChild(document.createTextNode(tokens[i].symbol));
+                newRow.insertCell(1).appendChild(document.createTextNode(tokens[i].name));
+                newRow.insertCell(2).appendChild(document.createTextNode(tokens[i].price));
+                newRow.insertCell(3).appendChild(document.createTextNode(tokens[i].balance));
+            }
+        }
     }
     var request = "http://localhost:3000/balance?contract=" + _contract + "&owner=" + _owner + "&tokenId=" + _tokenId;
     xmlHttp.open("GET", request, true); // true for asynchronous 
