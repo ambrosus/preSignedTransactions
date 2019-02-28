@@ -16,7 +16,8 @@ contract DelegateERC20 {
         mapping (address => bool) approvers;
         uint amountOfApprovals;
         uint256 timestamp;
-
+        uint arrayIndex;
+        
         bytes transaction;
         address executor;
     }
@@ -26,47 +27,9 @@ contract DelegateERC20 {
     mapping (address => bool) private _administrators;
     mapping (bytes4 => string) private _functions;
     
-    
+    event TransactionCreated(bytes32 transactionId);
     event TransactionCalled(bytes32 transactionId, bool success, bytes data);
     event ApproveReceived(address from, bytes32 transactionId);
-    
-    ////////////////////////////////////////////////////////////////////////////////////
-    
-    constructor () public { 
-        _contractAddress = new ERC20();
-        _administrators[msg.sender] = true;
-        
-         bytes4 selector = bytes4(keccak256("transfer(address,uint256)"));
-        _functions[selector] = "transfer(address,uint256)";
-    }
-    
-    function totalSupply() public view returns (uint256) {
-        return _contractAddress.totalSupply();
-    }
-
-    function balanceOf(address owner) public view returns (uint256) {
-        return _contractAddress.balanceOf(owner);
-    }
-
-    function allowance(address owner, address spender) public view returns (uint256) {
-        return _contractAddress.allowance(owner, spender);
-    }
-    
-    function approve(address spender, uint256 value) public returns (bool) {
-        return _contractAddress.approve(spender, value);
-    }
-
-    function transferFrom(address from, address to, uint256 value) public returns (bool) {
-        return transferFrom(from, to, value);
-    }
-
-    function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {
-        return _contractAddress.increaseAllowance(spender, addedValue);
-    }
-
-    function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
-        return _contractAddress.decreaseAllowance(spender, subtractedValue);
-    }
     
     //////////////////////////////////////////////////////////////////////////////////////
     
@@ -82,7 +45,10 @@ contract DelegateERC20 {
         _transactions[transactionId].transaction = abi.encodeWithSelector(selector, to, value);
         
         _pendingTransactions.push(transactionId);
+        _transactions[transactionId].arrayIndex = _pendingTransactions.length - 1;
+
         _transactionNonce = _transactionNonce.add(1);
+        emit TransactionCreated(transactionId);
         return transactionId;
     }
 
@@ -98,8 +64,8 @@ contract DelegateERC20 {
         
         if (_transactions[transactionId].amountOfApprovals >= _neededApprovals) {
             (bool success, bytes memory data) = address(_transactions[transactionId].executor).call(_transactions[transactionId].transaction);
-            _transactions[transactionId].timestamp = 0;
             _removePendingTransaction(transactionId);
+            _transactions[transactionId].timestamp = 0;
             emit TransactionCalled(transactionId, success, data);
         }
     }
@@ -109,15 +75,11 @@ contract DelegateERC20 {
     }
     
     function _removePendingTransaction(bytes32 transactionId) private {
-        for (uint i = 0; i < _pendingTransactions.length; ++i) {
-            if (_pendingTransactions[i] == transactionId) {
-                _pendingTransactions[i] = _pendingTransactions[_pendingTransactions.length - 1];
-                delete _pendingTransactions[_pendingTransactions.length - 1];
-                --_pendingTransactions.length;
-                return;
-            }
-        }
-        revert('Transaction not found');
+        uint index = _transactions[transactionId].arrayIndex;
+        _pendingTransactions[index] = _pendingTransactions[_pendingTransactions.length - 1];
+        _transactions[_pendingTransactions[index]].arrayIndex = index;
+        delete _pendingTransactions[_pendingTransactions.length - 1];
+        --_pendingTransactions.length;
     }
     
     function getTransactionInfo(bytes32 transactionId) public view returns (address, bytes memory) {
