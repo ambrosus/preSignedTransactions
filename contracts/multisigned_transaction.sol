@@ -1,263 +1,14 @@
 pragma solidity ^0.5.2;
 
-/**
- * @title SafeMath
- * @dev Unsigned math operations with safety checks that revert on error
- */
-library SafeMath {
-    /**
-     * @dev Multiplies two unsigned integers, reverts on overflow.
-     */
-    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
-        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
-        // benefit is lost if 'b' is also tested.
-        // See: https://github.com/OpenZeppelin/openzeppelin-solidity/pull/522
-        if (a == 0) {
-            return 0;
-        }
-
-        uint256 c = a * b;
-        require(c / a == b);
-
-        return c;
-    }
-
-    /**
-     * @dev Integer division of two unsigned integers truncating the quotient, reverts on division by zero.
-     */
-    function div(uint256 a, uint256 b) internal pure returns (uint256) {
-        // Solidity only automatically asserts when dividing by 0
-        require(b > 0);
-        uint256 c = a / b;
-        // assert(a == b * c + a % b); // There is no case in which this doesn't hold
-
-        return c;
-    }
-
-    /**
-     * @dev Subtracts two unsigned integers, reverts on overflow (i.e. if subtrahend is greater than minuend).
-     */
-    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-        require(b <= a);
-        uint256 c = a - b;
-
-        return c;
-    }
-
-    /**
-     * @dev Adds two unsigned integers, reverts on overflow.
-     */
-    function add(uint256 a, uint256 b) internal pure returns (uint256) {
-        uint256 c = a + b;
-        require(c >= a);
-
-        return c;
-    }
-
-    /**
-     * @dev Divides two unsigned integers and returns the remainder (unsigned integer modulo),
-     * reverts when dividing by zero.
-     */
-    function mod(uint256 a, uint256 b) internal pure returns (uint256) {
-        require(b != 0);
-        return a % b;
-    }
-}
-
-
-/**
- * @title Standard ERC20 token
- *
- * @dev Implementation of the basic standard token.
- * https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md
- * Originally based on code by FirstBlood:
- * https://github.com/Firstbloodio/token/blob/master/smart_contract/FirstBloodToken.sol
- *
- * This implementation emits additional Approval events, allowing applications to reconstruct the allowance status for
- * all accounts just by listening to said events. Note that this isn't required by the specification, and other
- * compliant implementations may not do it.
- */
-contract ERC20 {
-    using SafeMath for uint256;
-
-    mapping (address => uint256) private _balances;
-
-    mapping (address => mapping (address => uint256)) private _allowed;
-
-    uint256 private _totalSupply;
-    
-    constructor () public {
-        _mint(msg.sender, 10000);
-    }
-
-    /**
-     * @dev Total number of tokens in existence
-     */
-    function totalSupply() public view returns (uint256) {
-        return _totalSupply;
-    }
-
-    /**
-     * @dev Gets the balance of the specified address.
-     * @param owner The address to query the balance of.
-     * @return An uint256 representing the amount owned by the passed address.
-     */
-    function balanceOf(address owner) public view returns (uint256) {
-        return _balances[owner];
-    }
-
-    /**
-     * @dev Function to check the amount of tokens that an owner allowed to a spender.
-     * @param owner address The address which owns the funds.
-     * @param spender address The address which will spend the funds.
-     * @return A uint256 specifying the amount of tokens still available for the spender.
-     */
-    function allowance(address owner, address spender) public view returns (uint256) {
-        return _allowed[owner][spender];
-    }
-
-    /**
-     * @dev Transfer token for a specified address
-     * @param to The address to transfer to.
-     * @param value The amount to be transferred.
-     */
-    function transfer(address to, uint256 value) public returns (bool) {
-        _transfer(msg.sender, to, value);
-        return true;
-    }
-
-    /**
-     * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender.
-     * Beware that changing an allowance with this method brings the risk that someone may use both the old
-     * and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this
-     * race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards:
-     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
-     * @param spender The address which will spend the funds.
-     * @param value The amount of tokens to be spent.
-     */
-    function approve(address spender, uint256 value) public returns (bool) {
-        _approve(msg.sender, spender, value);
-        return true;
-    }
-
-    /**
-     * @dev Transfer tokens from one address to another.
-     * Note that while this function emits an Approval event, this is not required as per the specification,
-     * and other compliant implementations may not emit the event.
-     * @param from address The address which you want to send tokens from
-     * @param to address The address which you want to transfer to
-     * @param value uint256 the amount of tokens to be transferred
-     */
-    function transferFrom(address from, address to, uint256 value) public returns (bool) {
-        _transfer(from, to, value);
-        _approve(from, msg.sender, _allowed[from][msg.sender].sub(value));
-        return true;
-    }
-
-    /**
-     * @dev Increase the amount of tokens that an owner allowed to a spender.
-     * approve should be called when allowed_[_spender] == 0. To increment
-     * allowed value is better to use this function to avoid 2 calls (and wait until
-     * the first transaction is mined)
-     * From MonolithDAO Token.sol
-     * Emits an Approval event.
-     * @param spender The address which will spend the funds.
-     * @param addedValue The amount of tokens to increase the allowance by.
-     */
-    function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {
-        _approve(msg.sender, spender, _allowed[msg.sender][spender].add(addedValue));
-        return true;
-    }
-
-    /**
-     * @dev Decrease the amount of tokens that an owner allowed to a spender.
-     * approve should be called when allowed_[_spender] == 0. To decrement
-     * allowed value is better to use this function to avoid 2 calls (and wait until
-     * the first transaction is mined)
-     * From MonolithDAO Token.sol
-     * Emits an Approval event.
-     * @param spender The address which will spend the funds.
-     * @param subtractedValue The amount of tokens to decrease the allowance by.
-     */
-    function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
-        _approve(msg.sender, spender, _allowed[msg.sender][spender].sub(subtractedValue));
-        return true;
-    }
-
-    /**
-     * @dev Transfer token for a specified addresses
-     * @param from The address to transfer from.
-     * @param to The address to transfer to.
-     * @param value The amount to be transferred.
-     */
-    function _transfer(address from, address to, uint256 value) internal {
-        require(to != address(0));
-
-        _balances[from] = _balances[from].sub(value);
-        _balances[to] = _balances[to].add(value);
-    }
-
-    /**
-     * @dev Internal function that mints an amount of the token and assigns it to
-     * an account. This encapsulates the modification of balances such that the
-     * proper events are emitted.
-     * @param account The account that will receive the created tokens.
-     * @param value The amount that will be created.
-     */
-    function _mint(address account, uint256 value) internal {
-        require(account != address(0));
-
-        _totalSupply = _totalSupply.add(value);
-        _balances[account] = _balances[account].add(value);
-    }
-
-    /**
-     * @dev Internal function that burns an amount of the token of a given
-     * account.
-     * @param account The account whose tokens will be burnt.
-     * @param value The amount that will be burnt.
-     */
-    function _burn(address account, uint256 value) internal {
-        require(account != address(0));
-
-        _totalSupply = _totalSupply.sub(value);
-        _balances[account] = _balances[account].sub(value);
-    }
-
-    /**
-     * @dev Approve an address to spend another addresses' tokens.
-     * @param owner The address that owns the tokens.
-     * @param spender The address that will spend the tokens.
-     * @param value The number of tokens that can be spent.
-     */
-    function _approve(address owner, address spender, uint256 value) internal {
-        require(spender != address(0));
-        require(owner != address(0));
-
-        _allowed[owner][spender] = value;
-    }
-
-    /**
-     * @dev Internal function that burns an amount of the token of a given
-     * account, deducting from the sender's allowance for said account. Uses the
-     * internal burn function.
-     * Emits an Approval event (reflecting the reduced allowance).
-     * @param account The account whose tokens will be burnt.
-     * @param value The amount that will be burnt.
-     */
-    function _burnFrom(address account, uint256 value) internal {
-        _burn(account, value);
-        _approve(account, msg.sender, _allowed[account][msg.sender].sub(value));
-    }
-}
-
+import "openzeppelin-solidity/math/SafeMath.sol";
+import 'openzeppelin-solidity/token/ERC20/ERC20.sol';
 
 contract DelegateERC20 {
     using SafeMath for uint256;
     
     ERC20 private _contractAddress;
     uint constant _neededApprovals = 3;
-    uint256 constant _callLifeTime = 30; //seconds
+    uint256 constant _callLifeTime = 300000; //seconds
     uint256 private _transactionNonce = 0;
     
     
@@ -265,19 +16,18 @@ contract DelegateERC20 {
         mapping (address => bool) approvers;
         uint amountOfApprovals;
         uint256 timestamp;
-        
-        address _from;
-        address _to;
-        uint256 _value;
+
+        bytes transaction;
+        address executor;
     }
     
+    bytes32[] _pendingTransactions;
     mapping (bytes32 => Transaction) private _transactions;
     mapping (address => bool) private _administrators;
+    mapping (bytes4 => string) private _functions;
     
-    // keccak256 from "transfer(address,uint256)"
-    bytes4 constant transferMagicValue = bytes4('5ad6');
-    ////////////////////////////////////////////////////////////////////////////////////
-    event Transfer(address from, address to, uint256 value);
+    
+    event TransactionCalled(bytes32 transactionId, bool success, bytes data);
     event ApproveReceived(address from, bytes32 transactionId);
     
     ////////////////////////////////////////////////////////////////////////////////////
@@ -285,6 +35,9 @@ contract DelegateERC20 {
     constructor () public { 
         _contractAddress = new ERC20();
         _administrators[msg.sender] = true;
+        
+         bytes4 selector = bytes4(keccak256("transfer(address,uint256)"));
+        _functions[selector] = "transfer(address,uint256)";
     }
     
     function totalSupply() public view returns (uint256) {
@@ -299,47 +52,6 @@ contract DelegateERC20 {
         return _contractAddress.allowance(owner, spender);
     }
     
-    function createTransferTransaction(address to, uint value) public returns (bytes32) {
-        bytes32 transactionId = keccak256(abi.encodePacked(transferMagicValue, _transactionNonce, to, value));
-        require(_transactions[transactionId].timestamp == 0);
-        
-        _transactions[transactionId].timestamp = now;
-        _transactions[transactionId]._to = to;
-        _transactions[transactionId]._value = value;
-        
-        _transactionNonce = _transactionNonce.add(1);
-        
-        approveTransferTransaction(transactionId);
-        return transactionId;
-    }
-
-    function approveTransferTransaction(bytes32 transactionId) public {
-        //require(msg.sender == allowed_sender);
-        require((now - _transactions[transactionId].timestamp) <= _callLifeTime);
-        require(_transactions[transactionId].approvers[msg.sender] != true);
-        
-        _transactions[transactionId].approvers[msg.sender] = true;
-        _transactions[transactionId].amountOfApprovals = _transactions[transactionId].amountOfApprovals.add(1);
-        emit ApproveReceived(msg.sender, transactionId);
-        
-        if (_transactions[transactionId].amountOfApprovals >= _neededApprovals) {
-            _contractAddress.transfer(_transactions[transactionId]._to, _transactions[transactionId]._value);
-            emit Transfer(
-                _transactions[transactionId]._from,
-                _transactions[transactionId]._to,
-                _transactions[transactionId]._value
-                );
-        }
-    }
-    
-    function getTransactionParams(bytes32 transactionId) public view returns (address, address, uint256) {
-        return (
-            _transactions[transactionId]._from,
-            _transactions[transactionId]._to,
-            _transactions[transactionId]._value
-            );
-    }
-
     function approve(address spender, uint256 value) public returns (bool) {
         return _contractAddress.approve(spender, value);
     }
@@ -354,5 +66,73 @@ contract DelegateERC20 {
 
     function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
         return _contractAddress.decreaseAllowance(spender, subtractedValue);
+    }
+    
+    //////////////////////////////////////////////////////////////////////////////////////
+    
+    function createTransferTransaction(address to, uint value) public returns (bytes32) {
+        //TODO: move signature to string and replace encoding with encodeWithSignature
+        bytes4 selector = bytes4(keccak256("transfer(address,uint256)"));
+        bytes32 transactionId = keccak256(abi.encodePacked(selector, _transactionNonce, to, value));
+
+        require(_transactions[transactionId].timestamp == 0, 'Transaction already exists');
+        
+        _transactions[transactionId].timestamp = now;
+        _transactions[transactionId].executor = address(_contractAddress);
+        _transactions[transactionId].transaction = abi.encodeWithSelector(selector, to, value);
+        
+        _pendingTransactions.push(transactionId);
+        _transactionNonce = _transactionNonce.add(1);
+        return transactionId;
+    }
+
+    function approveTransaction(bytes32 transactionId) public {
+        //require(msg.sender == allowed_sender);
+        require(_transactions[transactionId].timestamp != 0, 'Transaction isn\'t exist or already performed');
+        require((now - _transactions[transactionId].timestamp) <= _callLifeTime, 'Transaction timeout');
+        require(_transactions[transactionId].approvers[msg.sender] != true, 'Transaction already aporoved');
+        
+        _transactions[transactionId].approvers[msg.sender] = true;
+        _transactions[transactionId].amountOfApprovals = _transactions[transactionId].amountOfApprovals.add(1);
+        emit ApproveReceived(msg.sender, transactionId);
+        
+        if (_transactions[transactionId].amountOfApprovals >= _neededApprovals) {
+            (bool success, bytes memory data) = address(_transactions[transactionId].executor).call(_transactions[transactionId].transaction);
+            _transactions[transactionId].timestamp = 0;
+            _removePendingTransaction(transactionId);
+            emit TransactionCalled(transactionId, success, data);
+        }
+    }
+    
+    function getPendingTransaction() public view returns (bytes32[] memory) {
+        return _pendingTransactions;
+    }
+    
+    function _removePendingTransaction(bytes32 transactionId) private {
+        for (uint i = 0; i < _pendingTransactions.length; ++i) {
+            if (_pendingTransactions[i] == transactionId) {
+                _pendingTransactions[i] = _pendingTransactions[_pendingTransactions.length - 1];
+                delete _pendingTransactions[_pendingTransactions.length - 1];
+                --_pendingTransactions.length;
+                return;
+            }
+        }
+        revert('Transaction not found');
+    }
+    
+    function getTransactionInfo(bytes32 transactionId) public view returns (address, bytes memory) {
+        return (_transactions[transactionId].executor, _transactions[transactionId].transaction);
+    }
+    
+    function getFunctionName(bytes4 signature) public view returns (string memory) {
+        return _functions[signature];
+    }
+    
+    function addAdministrator(address newAdmin) public {
+        //create transaction for adding new administrator
+    }
+    
+    function deleteAdministrator(address admin) public {
+        //create transaction for deleting administraor
     }
 }
