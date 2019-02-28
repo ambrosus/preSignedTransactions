@@ -1,6 +1,6 @@
 pragma solidity ^0.5.2;
 
-import "openzeppelin-solidity/math/SafeMath.sol";
+import 'openzeppelin-solidity/math/SafeMath.sol';
 import 'openzeppelin-solidity/token/ERC20/ERC20.sol';
 
 contract DelegateERC20 {
@@ -31,8 +31,17 @@ contract DelegateERC20 {
     event TransactionCalled(bytes32 transactionId, bool success, bytes data);
     event ApproveReceived(address from, bytes32 transactionId);
     
-    //////////////////////////////////////////////////////////////////////////////////////
-    
+    ////////////////////////////////////////////////////////////////////////////////////
+
+    function _hasApproved(address approver, bytes32 transactionId) private view returns (bool) {
+        return _transactions[transactionId].approvers[approver];
+    }
+
+    function hasApproved(address approver, bytes32 transactionId) public view returns (bool) {
+        require (_administrators[approver], 'Approver address is not administrator');
+        return _hasApproved(approver, transactionId);
+    }
+
     function createTransferTransaction(address to, uint value) public returns (bytes32) {
         //TODO: move signature to string and replace encoding with encodeWithSignature
         bytes4 selector = bytes4(keccak256("transfer(address,uint256)"));
@@ -53,10 +62,10 @@ contract DelegateERC20 {
     }
 
     function approveTransaction(bytes32 transactionId) public {
-        //require(msg.sender == allowed_sender);
+        require (_administrators[msg.sender], 'Approver address is not administrator');
         require(_transactions[transactionId].timestamp != 0, 'Transaction isn\'t exist or already performed');
         require((now - _transactions[transactionId].timestamp) <= _callLifeTime, 'Transaction timeout');
-        require(_transactions[transactionId].approvers[msg.sender] != true, 'Transaction already aporoved');
+        require(!_hasApproved(msg.sender, transactionId), 'Transaction already aporoved');
         
         _transactions[transactionId].approvers[msg.sender] = true;
         _transactions[transactionId].amountOfApprovals = _transactions[transactionId].amountOfApprovals.add(1);
