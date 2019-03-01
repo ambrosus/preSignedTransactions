@@ -18,7 +18,14 @@ import 'openzeppelin-solidity/ownership/Ownable.sol';
  * and if needed amount of approves received that it will execute transaction.
  * In this contract approving implemented in approveTransaction().
  *
+ * Example
+ * Developer Bob wants to transfer ownership of controlled smart contract.
+ * Administrators Vlad, Angel and Antoni uses "Network Management tool"
  *
+ * 1. Bob calls function transferOwnershipOfControlledContract() and passes address of new owner.
+ * 2. That function creates new transaction and "Network Management Tool" detects that and shows it.
+ * 3. Angel and Antony approves transaction clicking on some button, which calls approveTransaction() with transaction identifier.
+ * 4. After receiving required amount of approves transaction will be automatically executed.
  */
 contract DelegateAdminContract is Ownable {
     using SafeMath for uint256;
