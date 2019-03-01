@@ -1,42 +1,64 @@
 pragma solidity ^0.5.2;
 
 import 'openzeppelin-solidity/math/SafeMath.sol';
-import 'openzeppelin-solidity/token/ERC20/ERC20.sol';
-
+import 'openzeppelin-solidity/ownership/Ownable.sol';
 
 /**
  * @title DelegateERC20 smart contract
  * @dev Controls execution of ERC20 token transactions
-*/
-contract DelegateERC20 {
+ *
+ * For each function that should be approved by several users should be used 2 functions.
+ * One function should encode parameters, set function selector, address of contract that will execute transaction and timestamp.
+ * For each controlled transaction should be created own function for collecting info about that transaction.
+ * After everything is set that function will return transaction id, that can be used for transaction approving.
+ * Example is transferOwnershipOfControlledContract() or setControlledContractMultisigned().
+ * Identifiers of all pending transaction are stored in _pendingTransactions array.
+ *
+ * Second function is universal function for transaction approving. With transaction identifier it can add approve for transaction,
+ * and if needed amount of approves received that it will execute transaction.
+ * In this contract approving implemented in approveTransaction().
+ *
+ *
+ */
+contract DelegateAdminContract is Ownable {
     using SafeMath for uint256;
-    
-    ERC20 private _contractAddress;             //address of controlled contract
+
+    address private _contractAddress;             //address of controlled contract
     uint constant _neededApprovals = 3;         //amount of approves needed for transaction execution
     uint256 constant _callLifeTime = 300000;    //transaction lifetime in seconds
     uint256 private _transactionNonce = 0;
-    
-    
+
+
     struct Transaction {
         mapping (address => bool) approvers;
         uint amountOfApprovals;
         uint256 timestamp;
         uint arrayIndex;    //index in array of pending transactions
-        
+
         bytes transaction;  //function selector + encoded arguments
         address executor;   //contract, that should perform call
     }
-    
+
     bytes32[] _pendingTransactions;
     mapping (bytes32 => Transaction) private _transactions;
     mapping (address => bool) private _administrators;
     mapping (bytes4 => string) private _functions;  // with this we can find function name and signature from selector
-    
+
     event TransactionCreated(bytes32 transactionId);                            //new transaction created
     event TransactionCalled(bytes32 transactionId, bool success, bytes data);   //received needed amount of approvals and transaction executed
     event ApprovalReceived(address from, bytes32 transactionId);                //received approval
-    
+
     ////////////////////////////////////////////////////////////////////////////////////
+
+    constructor () public {
+        _administrators[msg.sender] = true;
+        transferOwnership(address(this));
+
+        bytes4 selector = bytes4(keccak256("transferOwnership(address)"));
+        _functions[selector] = "transferOwnership(address)";
+        selector = bytes4(keccak256("setControlledContract(address)"));
+        _functions[selector] = "setControlledContract(address)";
+    }
 
     /**
      * @dev Checks is account approved transaction
@@ -61,27 +83,22 @@ contract DelegateERC20 {
     }
 
     /**
-     * @dev Example of creating transaction, that should be approved by multiple users
-     * params of that function is parameters that needed for transaction after all approves is received
-     * in this example transaction of tokens should be approved, so we need address of receiver and amount of tokens
-     * for any function that should be approved by multiple users, should be created own function that
-     * will select executor, add needed function selector and encode parameters
+     * @dev Multisigned ownership transfer of controlled contract
      *
-     * @param to Address of receiver
-     * @param value Amount of tokens to send
+     * @param newOwner New owner of controlled contract
      * @return identifier of new transaction that should be approved
      */
-    function createTransferTransaction(address to, uint value) public returns (bytes32) {
+    function transferOwnershipOfControlledContract(address newOwner) public returns (bytes32) {
         //TODO: move signature to string and replace encoding with encodeWithSignature
-        bytes4 selector = bytes4(keccak256("transfer(address,uint256)"));
-        bytes32 transactionId = keccak256(abi.encodePacked(selector, _transactionNonce, to, value));
+        bytes4 selector = bytes4(keccak256("transferOwnership(address)"));
+        bytes32 transactionId = keccak256(abi.encodePacked(selector, _transactionNonce, newOwner));
 
         require(_transactions[transactionId].timestamp == 0, 'Transaction already exists');
-        
+
         _transactions[transactionId].timestamp = now;
         _transactions[transactionId].executor = address(_contractAddress);
-        _transactions[transactionId].transaction = abi.encodeWithSelector(selector, to, value);
-        
+        _transactions[transactionId].transaction = abi.encodeWithSelector(selector, newOwner);
+
         _pendingTransactions.push(transactionId);
         _transactions[transactionId].arrayIndex = _pendingTransactions.length - 1;
 
@@ -91,22 +108,22 @@ contract DelegateERC20 {
     }
 
     /**
-     * @dev Function for approving transaction, if this is last needed approval that executes transaction
+     * @dev Function for approving transaction. If this is a last needed approval that executes transaction
      * Reverts if sender hasn't permission to approve transaction, transaction isn't exists or already performed,
      * transaction timeout or transaction already approved
      *
      * @param transactionId Identifier of transaction to approve
      */
     function approveTransaction(bytes32 transactionId) public {
-        require (_administrators[msg.sender], 'Approver address is not administrator');
+        //require (_administrators[msg.sender], 'Approver address is not administrator');
         require(_transactions[transactionId].timestamp != 0, 'Transaction isn\'t exist or already performed');
         require((now - _transactions[transactionId].timestamp) <= _callLifeTime, 'Transaction timeout');
         require(!_hasApproved(msg.sender, transactionId), 'Transaction already aporoved');
-        
+
         _transactions[transactionId].approvers[msg.sender] = true;
         _transactions[transactionId].amountOfApprovals = _transactions[transactionId].amountOfApprovals.add(1);
         emit ApprovalReceived(msg.sender, transactionId);
-        
+
         if (_transactions[transactionId].amountOfApprovals >= _neededApprovals) {
             (bool success, bytes memory data) = address(_transactions[transactionId].executor).call(_transactions[transactionId].transaction);
             _removePendingTransaction(transactionId);
@@ -168,5 +185,48 @@ contract DelegateERC20 {
      */
     function deleteAdministrator(address admin) public {
         //create transaction for deleting administraor
+    }
+
+    /**
+     * @dev Function for getting current controlled contract
+     */
+    function getControlledContract() public view returns (address) {
+        return _contractAddress;
+    }
+
+    /**
+     * @dev Function for setting controlled contract address
+     * This is a helper for setControlledContractMultisigned, as setting new controlled contract should be approved by multiple users.
+     * It should be private but in that case it couldn't be called with low-level call() function. So there is workaround,
+     * this function is public but can be called only by contract owner, and ownership is transferred to this contract in constructor.
+     * Workaround will be used for every function of this contract that should be approved by multiple users.
+     * @param newContractAddress Address of new controlled contract
+     */
+    function setControlledContract(address newContractAddress) public onlyOwner {
+        _contractAddress = newContractAddress;
+    }
+
+    /**
+     * @dev Setting of controlled contract address that should be approved by multiple users
+     *
+     * @param newContractAddress New address of controlled contract
+     * @return identifier of new transaction that should be approved
+     */
+    function setControlledContractMultisigned(address newContractAddress) public returns (bytes32){
+        bytes4 selector = bytes4(keccak256("setControlledContract(address)"));
+        bytes32 transactionId = keccak256(abi.encodePacked(selector, _transactionNonce, newContractAddress));
+
+        require(_transactions[transactionId].timestamp == 0, 'Transaction already exists');
+
+        _transactions[transactionId].timestamp = now;
+        _transactions[transactionId].executor = address(this);
+        _transactions[transactionId].transaction = abi.encodeWithSelector(selector, newContractAddress);
+
+        _pendingTransactions.push(transactionId);
+        _transactions[transactionId].arrayIndex = _pendingTransactions.length - 1;
+
+        _transactionNonce = _transactionNonce.add(1);
+        emit TransactionCreated(transactionId);
+        return transactionId;
     }
 }
