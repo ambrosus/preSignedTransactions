@@ -1,7 +1,7 @@
 # Where it can be used
 ![business_logic.png](docs/business_logic.png)
 
-For example, Starbucks release own token. These tokens can be spent to purchase coffee. For this Starbucks created token smart contract and wallet for clients. Bob received 10 tokens from Starbucks, and he wants to send 5 token to Alice. For this Bob can use Starbucks wallet, which will prepare transaction parameters and send them to Starbucks. Signing and sending performed off-chain, so there is no fee for that. When Starbucks received signed parameters and crates on-chain transaction from itself. Now transaction performed on-chain and Starbucks pays transaction fee for Bob. Smartcontract can verify parameters with Bob signature, and after check it will send 5 tokens from Bob to Alice.
+For example, Coffefee (a fictive coffee shop) release own loyalty token which can be spent to purchase coffee from any of its stores. For this, Coffefee created token smart contract and wallet for clients. Bob received 10 tokens from Coffefee, and he wants to send 5 token to Alice. For this Bob can use Coffefee wallet app, which will prepare transaction parameters and send them to Coffefee. Signing and sending performed off-chain, so there is no fee for that. When Coffefee receives signed parameters and crates on-chain transaction from itself. Now transaction performed on-chain and Coffefee pays actual transaction fee (in native AMBs) for Bob. Smart contract can verify parameters with Bob signature, and after check it will send 5 tokens from Bob to Alice.
 
 
 # How it works
@@ -9,7 +9,7 @@ All on-chain actions are performed by the remote HTTP server. Web pages can only
 
 ![wallet_sequence_diagram.png](docs/wallet_sequence_diagram.png)
 
-The main idea is sending transaction parameters and signature to remote server, which will perform on-chain transaction.First, web client will receive a nonce parameter for specified address from an http server, which will get nonce from the token contract by calling getAccountNonce ().
+The main idea is sending transaction parameters and signature to remote server, which will perform on-chain transaction.First, web client will receive a nonce parameter for specified address from an http server, which will get nonce from the token contract by calling getAccountNonce().
 
 After nonce received by wallet, it will calculate signature based on wallet address, receiver address, tokens mount and nonce.
 
