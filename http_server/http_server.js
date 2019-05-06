@@ -1,3 +1,8 @@
+/**
+ * Copyright 2019 Ambrosus Inc.
+ * Email: tech@ambrosus.com
+ */
+
 const express = require('express')
 const app = express()
 const port = 3000

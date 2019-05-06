@@ -1,3 +1,8 @@
+/**
+ * Copyright 2019 Ambrosus Inc.
+ * Email: tech@ambrosus.com
+ */
+
 const Web3 = require('web3');
 const web3 = new Web3(Web3.providers.HttpProvider("http://localhost:8545"));
 const fs = require('fs');
